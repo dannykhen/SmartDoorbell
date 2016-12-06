@@ -45,11 +45,6 @@ class SmartDoorbell:
     self.logger.debug('sound_capture	= %s', sound_capture)
     self.logger.debug('sound_playback	= %s', sound_playback)
 
-    # Init sound playing
-    if self.ding_dong_file != None:
-      pygame.init()
-      pygame.mixer.music.load(self.ding_dong_file)
-
     # Configure the GPIO h/w for push button detection (if button is connected - value >=0)
     self.button_pin = button_pin
     if self.button_pin >= 0:
@@ -97,6 +92,7 @@ class SmartDoorbell:
     self.core.add_auth_info(auth_info)
  
   def signal_handler(self, signal, frame):
+    self.logger.debug('Interrupted, signal = %d', signal)
     self.core.terminate_all_calls()
     self.quit = True
  
@@ -138,23 +134,35 @@ class SmartDoorbell:
     while not self.quit:
       self.core.iterate()
 
-      # If not in call, and a doorbell button is configured, check button state
+      # If not in call, and a doorbell button is configured, get button state
       if not self.core.in_call() and self.button_pin >= 0:
         input_state = GPIO.input(self.button_pin)
-        if not input_state:
-          # Button pressed -> ring the bell and start a call to owner (first address in trusted list)
-          if self.ding_dong_file != None:
-            pygame.mixer.music.play()
 
+        # Check if button pressed
+        if not input_state:
           self.logger.info('Doorbell button pressed; calling %s', self.trusted[0])
+
+          # Start a call to owner (first address in trusted list)
           self.core.invite(self.trusted[0])
 
+          # Ring the bell
+          if self.ding_dong_file != None:
+            pygame.mixer.init()
+            pygame.mixer.music.load(self.ding_dong_file)
+            pygame.mixer.music.play()
+            while pygame.mixer.music.get_busy():
+              time.sleep(0.01)
+            pygame.mixer.quit()
+
       time.sleep(0.03)
+
+    self.logger.info('Terminating.')
  
 def main():
   # SmartDoorbell object arguments:
-  #   main_log_level, module_log_level: logging.ERROR / logging.WARNING / logging.INFO / logging.DEBUG (default=ERROR)
-  #       For module_log_level, use logging.INFO the first time to see the list of available audio/video devices.
+  #   main_log_level: log level for the program; logging.{ERROR,WARNING,INFO,DEBUG} (default=INFO)
+  #   module_log_level: log level for called modules; logging.{ERROR,WARNING,INFO,DEBUG} (default=ERROR)
+  #       Use logging.INFO the first time to see the list of available audio/video devices.
   #   button_pin: GPIO pin the doorbell push button is connected to (do not pass any value if button is not connected)
   #   ding_dong_file: sound effect for ringing the doorbell.
   #       A sample file comes with the GitHub repository; change the path to where you've put it.
@@ -165,7 +173,7 @@ def main():
   #       More items: any address allowed to call into the device to access the security camera, in addition to the above
   #   camera, sound_capture, sound_playback: your security camera device's video, sound input and sound output devices (use log_level=logging.INFO to see a list of devices during program initialization)
   cam = SmartDoorbell(
-	main_log_level=logging.DEBUG,
+	main_log_level=logging.INFO,
 	module_log_level=logging.ERROR,
 	button_pin=17,
 	ding_dong_file='/home/pi/SmartDoorbell/Ding-dong.wav',
