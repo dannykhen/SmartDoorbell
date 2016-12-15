@@ -177,9 +177,9 @@ def main():
 	module_log_level=logging.ERROR,
 	button_pin=17,
 	ding_dong_file='/home/pi/SmartDoorbell/Ding-dong.wav',
-	username='dannykhen-rpi',
-	password='8ArthurDent17',
-	trusted=['sip:dannykhen@sip.linphone.org', 'sip:dankhen@sip.linphone.org'],
+	username='youruser1',
+	password='yourpassword1',
+	trusted=['sip:youruser2@sip.linphone.org'],
 	camera='V4L2: /dev/video0',
 	sound_capture='ALSA: Microsoft® LifeCam Cinema(TM)',
 	sound_playback=
