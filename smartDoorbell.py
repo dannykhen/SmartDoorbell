@@ -182,7 +182,10 @@ def main():
 	trusted=['sip:dannykhen@sip.linphone.org', 'sip:dankhen@sip.linphone.org'],
 	camera='V4L2: /dev/video0',
 	sound_capture='ALSA: Microsoft® LifeCam Cinema(TM)',
-	sound_playback='ALSA: USB Audio Device')
+	sound_playback=
+		'ALSA: bcm2835 ALSA'		# for the Pi's analog audio out
+		# 'ALSA: USB Audio Device'	# for a USB audio adapter
+	)
   cam.run()
  
 main()
